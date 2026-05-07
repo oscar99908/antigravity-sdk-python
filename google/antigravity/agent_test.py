@@ -255,6 +255,81 @@ class AgentTest(unittest.IsolatedAsyncioTestCase):
       "local.local_connection.LocalConnectionStrategy"
   )
   @mock.patch.object(conversation.Conversation, "create")
+  async def test_policy_guard_mcp_server_requires_policies_or_hook(
+      self, mock_conv_create, mock_strategy_class
+  ):
+    """Guard fires when MCP servers are present but no policies or hooks."""
+    del mock_conv_create
+    mock_strategy_class.return_value = mock.MagicMock(stop=mock.AsyncMock())
+    config = local_connection.LocalAgentConfig(
+        system_instructions="test",
+        mcp_servers=[
+            {"type": "stdio", "command": "node", "args": ["index.js"]}
+        ],
+    )
+    with self.assertRaises(ValueError):
+      async with agent.Agent(config):
+        pass
+
+  @mock.patch(
+      "google.antigravity.connections."
+      "local.local_connection.LocalConnectionStrategy"
+  )
+  @mock.patch.object(conversation.Conversation, "create")
+  @mock.patch(
+      "google.antigravity.agent.bridge.McpBridge.connect_stdio"
+  )
+  async def test_policy_guard_mcp_server_with_policy_passes(
+      self, mock_connect_stdio, mock_conv_create, mock_strategy_class
+  ):
+    """No guard when MCP servers are present AND policies are provided."""
+    del mock_conv_create
+    mock_strategy_class.return_value = mock.MagicMock(stop=mock.AsyncMock())
+    config = local_connection.LocalAgentConfig(
+        system_instructions="test",
+        mcp_servers=[
+            {"type": "stdio", "command": "node", "args": ["index.js"]}
+        ],
+        policies=[policy.deny("*")],
+    )
+    async with agent.Agent(config):
+      pass  # Should not raise.
+
+  @mock.patch(
+      "google.antigravity.connections."
+      "local.local_connection.LocalConnectionStrategy"
+  )
+  @mock.patch.object(conversation.Conversation, "create")
+  @mock.patch(
+      "google.antigravity.agent.bridge.McpBridge.connect_stdio"
+  )
+  async def test_policy_guard_mcp_server_with_hook_passes(
+      self, mock_connect_stdio, mock_conv_create, mock_strategy_class
+  ):
+    """No guard when MCP servers are present AND a decide hook is provided."""
+    del mock_conv_create
+    mock_strategy_class.return_value = mock.MagicMock(stop=mock.AsyncMock())
+
+    class MyPreToolCallDecideHook(hooks.PreToolCallDecideHook):
+
+      async def run(self, context, data):
+        return types.HookResult(allow=True)
+
+    config = local_connection.LocalAgentConfig(
+        system_instructions="test",
+        mcp_servers=[
+            {"type": "stdio", "command": "node", "args": ["index.js"]}
+        ],
+        hooks=[MyPreToolCallDecideHook()],
+    )
+    async with agent.Agent(config):
+      pass  # Should not raise.
+
+  @mock.patch(
+      "google.antigravity.connections."
+      "local.local_connection.LocalConnectionStrategy"
+  )
+  @mock.patch.object(conversation.Conversation, "create")
   async def test_agent_register_hook(
       self, mock_conv_create, mock_strategy_class
   ):
@@ -638,7 +713,9 @@ class AgentTest(unittest.IsolatedAsyncioTestCase):
     ]
 
     config = local_connection.LocalAgentConfig(
-        system_instructions="test", mcp_servers=mcp_servers
+        system_instructions="test",
+        mcp_servers=mcp_servers,
+        policies=[policy.deny("*")],
     )
     async with agent.Agent(config) as ag:
       mock_mcp_bridge.assert_called_once_with(ag._tool_runner)

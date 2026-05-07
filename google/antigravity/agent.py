@@ -105,11 +105,18 @@ class Agent:
       else:
         active_tools = set(types.BuiltinTools)
       has_write_tools = bool(active_tools - read_only_tools)
-      if has_write_tools and not active_policies:
+      has_mcp_servers = bool(self._config.mcp_servers)
+      has_tool_decide_hook = bool(self._hook_runner.pre_tool_call_decide_hooks)
+
+      if (
+          (has_write_tools or has_mcp_servers)
+          and not active_policies
+          and not has_tool_decide_hook
+      ):
         raise ValueError(
-            "Policies must be provided when non-read-only builtin tools are "
-            "enabled to prevent interactive handlers from hanging in "
-            "non-interactive contexts."
+            "Policies or a PreToolCallDecideHook must be provided when "
+            "non-read-only tools or MCP servers are enabled to prevent "
+            "interactive handlers from hanging in non-interactive contexts."
         )
 
       if active_policies:
