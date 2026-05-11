@@ -98,6 +98,9 @@ class AgentConfig(abc.ABC, pydantic.BaseModel):
     Args:
       tool_runner: The fully-wired ToolRunner.
       hook_runner: The fully-wired HookRunner.
+
+    Returns:
+      A ConnectionStrategy instance configured with the specified runners.
     """
     ...
 
@@ -136,22 +139,24 @@ class Connection(abc.ABC):
     Yields Step objects representing agent actions. The exact fields populated
     depend on the backend, but all steps conform to the Step model.
 
+    Returns:
+      An async iterator of Step objects.
+
     Yields:
-      Step objects.
+      Step objects as they occur.
     """
     ...
 
-  @abc.abstractmethod
   async def disconnect(self) -> None:
     """Disconnects the session and releases resources."""
     ...
 
   async def cancel(self) -> None:
-    """Cancels the current turn."""
+    """Cancels the current turn in progress."""
     pass
 
   async def delete(self) -> None:
-    """Deletes this connection from the backend."""
+    """Deletes this connection and all associated state from the backend."""
     pass
 
   async def signal_idle(self) -> None:
@@ -163,7 +168,14 @@ class Connection(abc.ABC):
     pass
 
   async def wait_for_wakeup(self, timeout: float = 300.0) -> bool:  # pylint: disable=unused-argument
-    """Blocks until the connection wakes up."""
+    """Blocks until the connection wakes up or the timeout is reached.
+
+    Args:
+      timeout: Maximum seconds to wait.
+
+    Returns:
+      True if the connection woke up, False on timeout.
+    """
     return False
 
   async def send_tool_results(self, results: list[types.ToolResult]) -> None:
@@ -199,6 +211,9 @@ class ConnectionStrategy(abc.ABC):
   def connect(self) -> Connection:
     """Returns the established Connection.
 
+    Returns:
+      The active Connection object.
+
     Raises:
       RuntimeError: If the connection has not been established.
     """
@@ -209,10 +224,16 @@ class ConnectionStrategy(abc.ABC):
 
   @abc.abstractmethod
   async def __aenter__(self) -> None:
-    """Starts the backend."""
+    """Starts the backend and prepares for connections."""
     ...
 
   @abc.abstractmethod
   async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
-    """Tears down the backend and releases all resources."""
+    """Tears down the backend and releases all resources.
+
+    Args:
+      exc_type: The exception type, if any.
+      exc_val: The exception value, if any.
+      exc_tb: The traceback, if any.
+    """
     ...

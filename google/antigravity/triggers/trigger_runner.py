@@ -89,12 +89,22 @@ class TriggerRunner:
     self._tasks.clear()
 
   async def __aenter__(self) -> Self:
-    """Start triggers on entering the context."""
+    """Start triggers on entering the context.
+
+    Returns:
+      The TriggerRunner instance.
+    """
     await self.start()
     return self
 
   async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
-    """Stop triggers on exiting the context."""
+    """Stop triggers on exiting the context.
+
+    Args:
+      exc_type: The exception type, if any.
+      exc_val: The exception value, if any.
+      exc_tb: The traceback, if any.
+    """
     await self.stop()
 
   @property

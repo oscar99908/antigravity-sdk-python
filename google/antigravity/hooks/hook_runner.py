@@ -104,7 +104,14 @@ class HookRunner:
     return tuple(self._on_compaction_hooks)
 
   def register_hook(self, hook: Any):
-    """Registers a hook by inferring its type."""
+    """Registers a hook by inferring its type.
+
+    Args:
+      hook: The hook to register.
+
+    Raises:
+      ValueError: If the hook type is unknown.
+    """
     if isinstance(hook, hooks_base.OnSessionStartHook):
       self._on_session_start_hooks.append(hook)
     elif isinstance(hook, hooks_base.OnSessionEndHook):
@@ -128,12 +135,12 @@ class HookRunner:
 
   # Session
   async def dispatch_session_start(self) -> None:
-    """Dispatches session start events."""
+    """Dispatches session start events to all registered hooks."""
     for hook in self._on_session_start_hooks:
       await hook.run(context=self.session_context, data=None)
 
   async def dispatch_session_end(self) -> None:
-    """Dispatches session end events."""
+    """Dispatches session end events to all registered hooks."""
     for hook in self._on_session_end_hooks:
       await hook.run(context=self.session_context, data=None)
 
@@ -141,7 +148,14 @@ class HookRunner:
   async def dispatch_pre_turn(
       self, prompt: str
   ) -> tuple[hooks_base.HookResult, hooks_base.TurnContext]:
-    """Dispatches pre-turn events."""
+    """Dispatches pre-turn events.
+
+    Args:
+      prompt: The user prompt.
+
+    Returns:
+      A tuple of (HookResult, TurnContext).
+    """
     turn_context = hooks_base.TurnContext(self.session_context)
     for hook in self._pre_turn_hooks:
       res = await hook.run(context=turn_context, data=prompt)
@@ -152,7 +166,12 @@ class HookRunner:
   async def dispatch_post_turn(
       self, turn_context: hooks_base.TurnContext, response: str
   ) -> None:
-    """Dispatches post-turn events."""
+    """Dispatches post-turn events.
+
+    Args:
+      turn_context: The current turn context.
+      response: The model response text.
+    """
     for hook in self._post_turn_hooks:
       await hook.run(context=turn_context, data=response)
 
@@ -185,14 +204,27 @@ class HookRunner:
   async def dispatch_post_tool_call(
       self, op_context: hooks_base.OperationContext, result: Any
   ) -> None:
-    """Dispatches post-tool call events (Inspect)."""
+    """Dispatches post-tool call events.
+
+    Args:
+      op_context: The current operation context.
+      result: The result of the tool call.
+    """
     for hook in self._post_tool_call_hooks:
       await hook.run(context=op_context, data=result)
 
   async def dispatch_on_tool_error(
       self, op_context: hooks_base.OperationContext, error: Exception
   ) -> tuple[hooks_base.HookResult, Any]:
-    """Dispatches tool error events (Transform for recovery)."""
+    """Dispatches tool error events.
+
+    Args:
+      op_context: The current operation context.
+      error: The raised exception.
+
+    Returns:
+      A tuple of (HookResult, adjusted_error).
+    """
     for hook in self._on_tool_error_hooks:
       try:
         res = await hook.run(context=op_context, data=error)
@@ -212,7 +244,15 @@ class HookRunner:
   async def dispatch_interaction(
       self, turn_context: hooks_base.TurnContext, interaction_spec: Any
   ) -> tuple[hooks_base.HookResult, Any, hooks_base.OperationContext]:
-    """Dispatches interaction events."""
+    """Dispatches interaction events.
+
+    Args:
+      turn_context: The current turn context.
+      interaction_spec: The spec for the requested interaction.
+
+    Returns:
+      A tuple of (HookResult, response, OperationContext).
+    """
     op_context = hooks_base.OperationContext(turn_context)
     for hook in self._on_interaction_hooks:
       res = await hook.run(context=op_context, data=interaction_spec)
@@ -230,7 +270,12 @@ class HookRunner:
   async def dispatch_compaction(
       self, turn_context: hooks_base.TurnContext, data: Any
   ) -> None:
-    """Dispatches compaction events (Inspect)."""
+    """Dispatches compaction events.
+
+    Args:
+      turn_context: The current turn context.
+      data: Data about the compaction event.
+    """
     op_context = hooks_base.OperationContext(turn_context)
     for hook in self._on_compaction_hooks:
       await hook.run(context=op_context, data=data)

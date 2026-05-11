@@ -200,7 +200,11 @@ class BuiltinTools(str, enum.Enum):
 
   @classmethod
   def read_only(cls) -> list["BuiltinTools"]:
-    """Returns tools that only read state (no writes, deletes, or commands)."""
+    """Returns tools that only read state (no writes, deletes, or commands).
+
+    Returns:
+        A list of read-only BuiltinTools.
+    """
     return [
         cls.LIST_DIR,
         cls.SEARCH_DIR,
@@ -211,7 +215,11 @@ class BuiltinTools(str, enum.Enum):
 
   @classmethod
   def nondestructive(cls) -> list["BuiltinTools"]:
-    """Returns tools that cannot delete content."""
+    """Returns tools that cannot delete content.
+
+    Returns:
+        A list of non-destructive BuiltinTools.
+    """
     return [
         cls.LIST_DIR,
         cls.SEARCH_DIR,
@@ -227,12 +235,20 @@ class BuiltinTools(str, enum.Enum):
 
   @classmethod
   def all(cls) -> list["BuiltinTools"]:
-    """Returns all builtin tools."""
+    """Returns all builtin tools.
+
+    Returns:
+        A list of all BuiltinTools.
+    """
     return list(cls)
 
   @classmethod
   def none(cls) -> list["BuiltinTools"]:
-    """Returns an empty tool list (no builtin tools)."""
+    """Returns an empty tool list (no builtin tools).
+
+    Returns:
+        An empty list of BuiltinTools.
+    """
     return []
 
 
@@ -734,16 +750,28 @@ class ChatResponse:
     return _tool_calls_gen()
 
   async def resolve(self) -> list[StreamChunk | ToolCall | ToolResult]:
-    """Drains the underlying stream completely and returns all chunks as a flat list."""
+    """Drains the underlying stream completely and returns all chunks as a flat list.
+
+    Returns:
+        A list of all chunks yielded during the turn.
+    """
     return [chunk async for chunk in self.chunks]
 
   async def text(self) -> str:
-    """Drains the stream and returns the fully aggregated conversational response text."""
+    """Drains the stream and returns the fully aggregated conversational response text.
+
+    Returns:
+        The complete response text as a single string.
+    """
     chunks = await self.resolve()
     return "".join(chunk.text for chunk in chunks if isinstance(chunk, Text))
 
   async def structured_output(self) -> Any | None:
-    """Drains the stream and extracts the parsed structured output payload, if one exists."""
+    """Drains the stream and extracts the parsed structured output payload, if one exists.
+
+    Returns:
+        The parsed structured output if available, otherwise None.
+    """
     if not self._is_done:
       await self.resolve()
     return self._conversation.get_last_structured_output()
@@ -803,7 +831,20 @@ SUPPORTED_VIDEO_MIMES = frozenset({
 
 
 def _read_file_safely(path: str | pathlib.Path) -> bytes:
-  """Robustly loads local file bytes with comprehensive error wrapping."""
+  """Robustly loads local file bytes with comprehensive error wrapping.
+
+  Args:
+      path: The file path to read.
+
+  Returns:
+      The file contents as bytes.
+
+  Raises:
+      FileNotFoundError: If the file does not exist.
+      IsADirectoryError: If the path is a directory.
+      PermissionError: If the file is not readable.
+      OSError: For other filesystem errors.
+  """
   file_path = pathlib.Path(path)
   try:
     return file_path.read_bytes()
@@ -832,7 +873,15 @@ class _BaseMedia(pydantic.BaseModel):
   def from_file(
       cls, path: str | pathlib.Path, description: str | None = None
   ) -> _BaseMedia:
-    """Instantiates a media content primitive from a local file path."""
+    """Instantiates a media content primitive from a local file path.
+
+    Args:
+        path: Local file path to read.
+        description: Optional text description of the media.
+
+    Returns:
+        The instantiated media object.
+    """
     file_path = pathlib.Path(path)
     data = _read_file_safely(file_path)
     mime_guess, _ = mimetypes.guess_type(file_path)
@@ -900,7 +949,19 @@ Content = ContentPrimitive | list[ContentPrimitive]
 def from_file(
     path: str | pathlib.Path, description: str | None = None
 ) -> Image | Document | Audio | Video:
-  """Automatically resolves a local file path into the correct semantic Content primitive."""
+  """Automatically resolves a local file path into the correct semantic Content primitive.
+
+  Args:
+      path: Local file path to read.
+      description: Optional text description of the media.
+
+  Returns:
+      A specialized media object (Image, Document, Audio, or Video) based
+      on the file's MIME type.
+
+  Raises:
+      ValueError: If the MIME type cannot be inferred or is unsupported.
+  """
   file_path = pathlib.Path(path)
   data = _read_file_safely(file_path)
 

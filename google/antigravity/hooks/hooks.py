@@ -38,7 +38,15 @@ class HookContext:
     self._store: dict[str, Any] = {}
 
   def get(self, key: str, default: Any = None) -> Any:
-    """Gets a value from the context or its parents."""
+    """Gets a value from the context or its parents.
+
+    Args:
+      key: The key to look up.
+      default: The default value to return if the key is not found.
+
+    Returns:
+      The value associated with the key, or the default value.
+    """
     if key in self._store:
       return self._store[key]
     if self.parent:
@@ -46,7 +54,12 @@ class HookContext:
     return default
 
   def set(self, key: str, value: Any) -> None:
-    """Sets a value in the local context."""
+    """Sets a value in the local context.
+
+    Args:
+      key: The key to set.
+      value: The value to associate with the key.
+    """
     self._store[key] = value
 
 
@@ -227,7 +240,14 @@ class OnCompactionHook(InspectHook):
 
 
 def pre_turn(func: Callable[[str], Awaitable[HookResult]]):
-  """Decorator for PreTurnHook."""
+  """Decorator for PreTurnHook.
+
+  Args:
+    func: The async function to wrap as a pre-turn hook.
+
+  Returns:
+    An instance of PreTurnHook.
+  """
 
   class FunctionPreTurnHook(PreTurnHook):
 
@@ -246,7 +266,14 @@ def pre_turn(func: Callable[[str], Awaitable[HookResult]]):
 def pre_tool_call_decide(
     func: Callable[[types.ToolCall], Awaitable[HookResult]],
 ):
-  """Decorator for PreToolCallDecideHook."""
+  """Decorator for PreToolCallDecideHook.
+
+  Args:
+    func: The async function to wrap as a pre-tool-call decision hook.
+
+  Returns:
+    An instance of PreToolCallDecideHook.
+  """
 
   class FunctionPreToolCallDecideHook(PreToolCallDecideHook):
 
@@ -265,7 +292,14 @@ def pre_tool_call_decide(
 def on_interaction(
     func: Callable[[AskQuestionInteractionSpec], Awaitable[QuestionHookResult]],
 ):
-  """Decorator for OnInteractionHook."""
+  """Decorator for OnInteractionHook.
+
+  Args:
+    func: The async function to wrap as an interaction hook.
+
+  Returns:
+    An instance of OnInteractionHook.
+  """
 
   class FunctionOnInteractionHook(OnInteractionHook):
 
@@ -284,7 +318,14 @@ def on_interaction(
 
 
 def on_compaction(func: Callable[[Any], Awaitable[None]]):
-  """Decorator for OnCompactionHook."""
+  """Decorator for OnCompactionHook.
+
+  Args:
+    func: The async function to wrap as a compaction hook.
+
+  Returns:
+    An instance of OnCompactionHook.
+  """
 
   class FunctionOnCompactionHook(OnCompactionHook):
 
@@ -301,7 +342,14 @@ def on_compaction(func: Callable[[Any], Awaitable[None]]):
 
 
 def on_session_start(func: Callable[[], Awaitable[None]]):
-  """Decorator for OnSessionStartHook."""
+  """Decorator for OnSessionStartHook.
+
+  Args:
+    func: The async function to wrap as a session start hook.
+
+  Returns:
+    An instance of OnSessionStartHook.
+  """
 
   class FunctionOnSessionStartHook(OnSessionStartHook):
 
@@ -318,7 +366,14 @@ def on_session_start(func: Callable[[], Awaitable[None]]):
 
 
 def on_session_end(func: Callable[[], Awaitable[None]]):
-  """Decorator for OnSessionEndHook."""
+  """Decorator for OnSessionEndHook.
+
+  Args:
+    func: The async function to wrap as a session end hook.
+
+  Returns:
+    An instance of OnSessionEndHook.
+  """
 
   class FunctionOnSessionEndHook(OnSessionEndHook):
 
@@ -335,7 +390,14 @@ def on_session_end(func: Callable[[], Awaitable[None]]):
 
 
 def post_turn(func: Callable[[str], Awaitable[None]]):
-  """Decorator for PostTurnHook."""
+  """Decorator for PostTurnHook.
+
+  Args:
+    func: The async function to wrap as a post-turn hook.
+
+  Returns:
+    An instance of PostTurnHook.
+  """
 
   class FunctionPostTurnHook(PostTurnHook):
 
@@ -352,7 +414,14 @@ def post_turn(func: Callable[[str], Awaitable[None]]):
 
 
 def post_tool_call(func: Callable[[Any], Awaitable[None]]):
-  """Decorator for PostToolCallHook."""
+  """Decorator for PostToolCallHook.
+
+  Args:
+    func: The async function to wrap as a post-tool-call hook.
+
+  Returns:
+    An instance of PostToolCallHook.
+  """
 
   class FunctionPostToolCallHook(PostToolCallHook):
 
@@ -369,7 +438,14 @@ def post_tool_call(func: Callable[[Any], Awaitable[None]]):
 
 
 def on_tool_error(func: Callable[[Exception], Awaitable[Any]]):
-  """Decorator for OnToolErrorHook."""
+  """Decorator for OnToolErrorHook.
+
+  Args:
+    func: The async function to wrap as a tool error hook.
+
+  Returns:
+    An instance of OnToolErrorHook.
+  """
 
   class FunctionOnToolErrorHook(OnToolErrorHook):
 

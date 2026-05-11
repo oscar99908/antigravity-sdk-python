@@ -107,7 +107,16 @@ def allow(
     when: Predicate | None = None,
     name: str = "",
 ) -> Policy:
-  """Creates an APPROVE policy for `tool`."""
+  """Creates an APPROVE policy for `tool`.
+
+  Args:
+    tool: Tool name or "*" for all tools.
+    when: Optional argument predicate.
+    name: Human-readable label.
+
+  Returns:
+    A Policy with decision=APPROVE.
+  """
   return Policy(tool=tool, decision=Decision.APPROVE, when=when, name=name)
 
 
@@ -117,7 +126,16 @@ def deny(
     when: Predicate | None = None,
     name: str = "",
 ) -> Policy:
-  """Creates a DENY policy for `tool`."""
+  """Creates a DENY policy for `tool`.
+
+  Args:
+    tool: Tool name or "*" for all tools.
+    when: Optional argument predicate.
+    name: Human-readable label.
+
+  Returns:
+    A Policy with decision=DENY.
+  """
   return Policy(tool=tool, decision=Decision.DENY, when=when, name=name)
 
 

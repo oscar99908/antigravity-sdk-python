@@ -56,7 +56,11 @@ class Agent:
     self._pending_triggers = list(config.triggers)
 
   def register_hook(self, hook: hooks.Hook):
-    """Registers a hook by inferring its type."""
+    """Registers a hook by inferring its type.
+
+    Args:
+        hook: The hook to register.
+    """
     if not self._hook_runner:
       self._pending_hooks.append(hook)
       return
@@ -80,7 +84,11 @@ class Agent:
     self._pending_triggers.append(trigger)
 
   async def __aenter__(self) -> "Agent":
-    """Starts the agent session."""
+    """Starts the agent session.
+
+    Returns:
+        The started Agent instance.
+    """
     logging.info("Starting Agent session")
     try:
       self._hook_runner = hook_runner.HookRunner()
@@ -164,7 +172,13 @@ class Agent:
       raise
 
   async def __aexit__(self, exc_type, exc_val, exc_tb):
-    """Stops the agent session."""
+    """Stops the agent session.
+
+    Args:
+        exc_type: The exception type, if any.
+        exc_val: The exception value, if any.
+        exc_tb: The traceback, if any.
+    """
     logging.info("Stopping Agent session")
     if self._trigger_runner:
       await self._trigger_runner.stop()
@@ -175,7 +189,14 @@ class Agent:
       await self._conversation_cm.__aexit__(exc_type, exc_val, exc_tb)
 
   async def chat(self, prompt: types.Content) -> types.ChatResponse:
-    """Sends a prompt and returns the final response."""
+    """Sends a prompt and returns the final response.
+
+    Args:
+        prompt: The user prompt or content to send.
+
+    Returns:
+        The final response from the agent.
+    """
     if not self._conversation:
       raise RuntimeError(
           "Agent session not started. Use 'async with Agent(...)'."

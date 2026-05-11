@@ -64,7 +64,14 @@ class McpBridge:
     self.tools: list[ToolWithSchema] = []
 
   async def connect(self, server_cfg: types.McpServerConfig):
-    """Connects to an MCP server based on its configuration."""
+    """Connects to an MCP server based on its configuration.
+
+    Args:
+      server_cfg: The configuration for the MCP server.
+
+    Raises:
+      ValueError: If the server configuration type is unsupported.
+    """
     if server_cfg.type == "stdio":
       await self.connect_stdio(server_cfg.command, server_cfg.args)
     elif server_cfg.type == "sse":
@@ -81,12 +88,22 @@ class McpBridge:
       raise ValueError(f"Unsupported MCP server type: {server_cfg.type}")
 
   async def connect_stdio(self, command: str, args: list[str]):
-    """Connects to a local MCP server over stdio."""
+    """Connects to a local MCP server over stdio.
+
+    Args:
+      command: The command to run to start the server.
+      args: Arguments to pass to the command.
+    """
     params = stdio.StdioServerParameters(command=command, args=args)
     await self._connect(params)
 
   async def connect_sse(self, url: str, headers: dict[str, str] | None = None):
-    """Connects to a remote MCP server over SSE."""
+    """Connects to a remote MCP server over SSE.
+
+    Args:
+      url: The URL of the SSE endpoint.
+      headers: Optional headers to send with the connection request.
+    """
     params = SseServerParameters(url=url, headers=headers)
     await self._connect(params)
 
@@ -124,7 +141,7 @@ class McpBridge:
     self.tools = await get_mcp_tools(self.session_group)
 
   async def stop(self):
-    """Cleans up all active MCP sessions."""
+    """Cleans up all active MCP sessions and releases resources."""
     if self.session_group:
       await self.session_group.__aexit__(None, None, None)
       self.session_group = None

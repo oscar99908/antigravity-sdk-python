@@ -120,7 +120,14 @@ class LocalConnectionStep(types.Step):
 
   @classmethod
   def from_dict(cls, step_dict: dict[str, Any]) -> "LocalConnectionStep":
-    """Creates a LocalConnectionStep from a dictionary representation of StepUpdate."""
+    """Creates a LocalConnectionStep from a dictionary representation of StepUpdate.
+
+    Args:
+      step_dict: Dictionary containing StepUpdate fields.
+
+    Returns:
+      A new LocalConnectionStep instance.
+    """
     traj_id = step_dict.get("trajectory_id", "")
     step_idx = step_dict.get("step_index", 0)
 
@@ -352,7 +359,11 @@ class LocalConnection(connection.Connection):
     return self._cascade_id or ""
 
   async def send(self, prompt: types.Content | None) -> None:
-    """Sends a prompt to the agent."""
+    """Sends a prompt to the agent.
+
+    Args:
+      prompt: The user prompt or content to send.
+    """
     self._cancelled = False
     self._is_idle.clear()
     self._parent_idle = False

@@ -79,6 +79,9 @@ class Conversation:
 
     Args:
       strategy: The connection strategy to use to interact with an agent.
+
+    Yields:
+      A new Conversation instance.
     """
     async with strategy:
       yield cls(strategy.connect())
@@ -111,6 +114,9 @@ class Conversation:
     Steps are recorded in history as they arrive. The iterator exits once
     the execution turn is complete.
 
+    Returns:
+      An async iterator of Step objects.
+
     Yields:
       Steps as they complete.
     """
@@ -127,6 +133,9 @@ class Conversation:
       self,
   ) -> AsyncIterator[types.StreamChunk | types.ToolCall]:
     """Receives and yields real-time semantic chunks for the current turn.
+
+    Returns:
+      An async iterator of Thought, Text, or ToolCall events.
 
     Yields:
       Thought, Text, or ToolCall events in real-time.
@@ -311,23 +320,26 @@ class Conversation:
   # ---------------------------------------------------------------------------
 
   async def cancel(self) -> None:
-    """Cancels the current turn."""
+    """Cancels the current turn in progress."""
     await self._connection.cancel()
 
   async def delete(self) -> None:
-    """Deletes this conversation from the backend."""
+    """Deletes this conversation and all associated state from the backend."""
     await self._connection.delete()
 
   async def signal_idle(self) -> None:
-    """Signals that the conversation is ready to receive input."""
+    """Signals that the conversation is ready to receive input.
+
+    This is used by the harness to indicate that the agent can proceed.
+    """
     await self._connection.signal_idle()
 
   async def wait_for_idle(self) -> None:
-    """Blocks until the conversation is idle."""
+    """Blocks until the conversation is idle and ready for the next turn."""
     await self._connection.wait_for_idle()
 
   async def wait_for_wakeup(self, timeout: float = 300.0) -> bool:
-    """Blocks until the conversation wakes up.
+    """Blocks until the conversation wakes up or the timeout is reached.
 
     Args:
       timeout: Maximum seconds to wait.
@@ -338,5 +350,5 @@ class Conversation:
     return await self._connection.wait_for_wakeup(timeout)
 
   async def disconnect(self) -> None:
-    """Disconnect the conversation's background stream."""
+    """Closes the connection transport and releases background resources."""
     await self._connection.disconnect()
