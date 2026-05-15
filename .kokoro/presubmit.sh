@@ -51,9 +51,9 @@ python3 -m pip install \
   -r "${SCRIPT_DIR}/requirements-test.txt"
 
 echo "--- Installing package under test ---"
-# Install the package itself with --no-deps since dependencies are already
-# installed above with hash verification.
-python3 -m pip install --no-deps -e .
+# Install the package itself with --no-deps --no-index since all
+# dependencies are already installed above with hash verification.
+python3 -m pip install --no-deps --no-index -e .
 
 echo "--- Running tests ---"
 python3 -m pytest -v --tb=short
@@ -65,7 +65,7 @@ echo "--- Building wheel ---"
 python3 -m build --wheel --no-isolation --outdir dist/
 
 echo "--- Verifying wheel installs and imports correctly ---"
-python3 -m pip install --force-reinstall --no-deps dist/*.whl
+python3 -m pip install --force-reinstall --no-deps --no-index dist/*.whl
 python3 -c "from google.antigravity.agent import Agent; print('Import OK: Agent')"
 python3 -c "from google.antigravity.connections.local_connection import LocalConnection; print('Import OK: LocalConnection')"
 
