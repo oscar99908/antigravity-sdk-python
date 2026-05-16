@@ -24,6 +24,7 @@ import unittest
 from unittest import mock
 
 from absl.testing import absltest
+from absl.testing import parameterized
 import pydantic
 import websockets
 
@@ -1121,7 +1122,7 @@ class LocalConnectionToolCallNoRunnerTest(unittest.IsolatedAsyncioTestCase):
     self.assertEqual(len(harness.ws.sent_messages), 0)
 
 
-class LocalConnectionStrategyConfigTest(unittest.TestCase):
+class LocalConnectionStrategyConfigTest(parameterized.TestCase):
   """Tests for config-to-proto translation in LocalConnectionStrategy.
 
   These tests exercise _build_harness_config() directly, without mocking
@@ -1401,7 +1402,7 @@ class LocalConnectionStrategyConfigTest(unittest.TestCase):
     self.assertFalse(config.harness_side_tools.run_command.enabled)
     self.assertFalse(config.harness_side_tools.user_questions.enabled)
     self.assertFalse(config.harness_side_tools.generate_image.enabled)
-    # Subagents are not in BuiltinTools; should still be enabled by default.
+    # Subagents were not disabled; should still be enabled by default.
     self.assertTrue(config.harness_side_tools.subagents.enabled)
     # Tools that were not disabled should still be enabled.
     self.assertTrue(config.harness_side_tools.find.enabled)
@@ -1424,14 +1425,22 @@ class LocalConnectionStrategyConfigTest(unittest.TestCase):
         )
     )
     config = strategy._build_harness_config()
-    self.assertTrue(config.harness_side_tools.view_file.enabled)
-    self.assertFalse(config.harness_side_tools.run_command.enabled)
-    self.assertFalse(config.harness_side_tools.user_questions.enabled)
-    self.assertFalse(config.harness_side_tools.find.enabled)
-    self.assertFalse(config.harness_side_tools.file_edit.enabled)
-    self.assertFalse(config.harness_side_tools.write_to_file.enabled)
-    self.assertFalse(config.harness_side_tools.grep_search.enabled)
-    self.assertFalse(config.harness_side_tools.list_dir.enabled)
+    config.harness_side_tools.generate_image.ClearField("model_name")
+
+    expected_harness_side_tools = localharness_pb2.HarnessSideTools(
+        view_file=localharness_pb2.ViewFileToolConfig(enabled=True),
+        subagents=localharness_pb2.SubagentsConfig(enabled=False),
+        user_questions=localharness_pb2.UserQuestionsConfig(enabled=False),
+        run_command=localharness_pb2.RunCommandToolConfig(enabled=False),
+        find=localharness_pb2.FindToolConfig(enabled=False),
+        generate_image=localharness_pb2.GenerateImageToolConfig(enabled=False),
+        file_edit=localharness_pb2.FileEditToolConfig(enabled=False),
+        write_to_file=localharness_pb2.WriteToFileToolConfig(enabled=False),
+        grep_search=localharness_pb2.GrepSearchToolConfig(enabled=False),
+        list_dir=localharness_pb2.ListDirToolConfig(enabled=False),
+    )
+
+    self.assertEqual(config.harness_side_tools, expected_harness_side_tools)
 
   def test_capabilities_config_compaction_threshold(self):
     """Verifies compaction_threshold maps to HarnessConfig.compaction_threshold.
@@ -1641,6 +1650,27 @@ class LocalConnectionStrategyConfigTest(unittest.TestCase):
     strategy = self._make_strategy()
     config = strategy._build_harness_config()
     self.assertEqual(config.app_data_dir, "")
+
+  @parameterized.named_parameters(
+      dict(
+          testcase_name="via_disabled_tools",
+          capabilities_config=types.CapabilitiesConfig(
+              enable_subagents=True,
+              disabled_tools=[types.BuiltinTools.START_SUBAGENT],
+          ),
+      ),
+      dict(
+          testcase_name="via_enable_subagents_false",
+          capabilities_config=types.CapabilitiesConfig(
+              enable_subagents=False,
+          ),
+      ),
+  )
+  def test_capabilities_config_subagents_disabled(self, capabilities_config):
+    """Verifies that subagents are disabled based on capabilities_config."""
+    strategy = self._make_strategy(capabilities_config=capabilities_config)
+    config = strategy._build_harness_config()
+    self.assertFalse(config.harness_side_tools.subagents.enabled)
 
 
 class LocalConnectionStrategyApiKeyTest(unittest.IsolatedAsyncioTestCase):

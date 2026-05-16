@@ -1390,10 +1390,13 @@ class LocalConnectionStrategy(connection.ConnectionStrategy):
     else:
       active_tools = all_tools
 
+    subagent_enabled = (
+        cfg.enable_subagents
+        and types.BuiltinTools.START_SUBAGENT in active_tools
+    )
+
     harness_side_tools = localharness_pb2.HarnessSideTools(
-        subagents=localharness_pb2.SubagentsConfig(
-            enabled=cfg.enable_subagents
-        ),
+        subagents=localharness_pb2.SubagentsConfig(enabled=subagent_enabled),
         find=localharness_pb2.FindToolConfig(
             enabled=types.BuiltinTools.FIND_FILE in active_tools
         ),
