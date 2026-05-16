@@ -118,17 +118,18 @@ def _print_telemetry(
 
 
 async def run():
-  """Runs the example."""
-  mcp_server_path = os.path.join(os.path.dirname(__file__), "mcp_server.par")
+  """Runs the interactive CLI loop for the Google Antigravity SDK."""
+  mcp_server_path = os.path.join(
+      os.path.dirname(__file__), "..", "resources", "mcp_server.py"
+  )
+  mcp_server = types.McpStdioServer(
+      command="python3",
+      args=[mcp_server_path, "--transport=stdio"],
+  )
 
   config = LocalAgentConfig(
       tools=[read_file_upside_down],
-      mcp_servers=[
-          types.McpStdioServer(
-              command=mcp_server_path,
-              args=["--transport=stdio"],
-          )
-      ],
+      mcp_servers=[mcp_server],
       policies=[policy.ask_user("*", handler=interactive.ask_user_handler)],
       hooks=[interactive.AskQuestionHook()],
       capabilities=types.CapabilitiesConfig(
@@ -181,6 +182,11 @@ async def run():
 
 
 def main(argv: Sequence[str]) -> None:
+  """Entry point for the interactive CLI example.
+
+  Args:
+    argv: List of command-line arguments.
+  """
   del argv
   logging.set_verbosity(logging.INFO)
   asyncio.run(run())
